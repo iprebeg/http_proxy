@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -ggdb -I ./ -DDEBUG
+CFLAGS = -Wall -ggdb -I ./ #-DDEBUG
 LDFLAGS = 
 PROJECT = http_proxy
 SOURCE = main.c wrap.c http.c
