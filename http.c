@@ -1,5 +1,6 @@
 #include <wrap.h>
 #include <http.h>
+#include <pthread.h>
 
 void send_bad_response(int cs,int code,char * inv_req)
 {
@@ -73,6 +74,16 @@ int create_connection( char * host_r)
   return hs;
 }
 
+
+void * process_p ( void * arg)
+{
+  fprintf (stdout, "==== start in thread %u ====\n", (unsigned int)pthread_self());
+  struct args_p a = *((struct args_p*)arg);  
+  process(a.cs, a.cli);
+  fprintf (stdout, "==== done in thread %u ====\n", (unsigned int)pthread_self());
+  return NULL;
+}
+
 void process(int cs,struct sockaddr_in * cli)
 {
   int n;
@@ -99,8 +110,9 @@ void process(int cs,struct sockaddr_in * cli)
 
   n = Recv(cs,buf,MAXLEN - 1,0);
 
+#ifdef DEBUG
   printf ("RECEIVED\n====================\n%s====================\n",buf);
-
+#endif
 
   tok = strtok(buf,"\n");
   for (i=0; tok != NULL; i++) {
@@ -255,8 +267,8 @@ void process(int cs,struct sockaddr_in * cli)
 
   Send(hs,sbuf,sbuf_offset,0x0);
 
-  printf ("FORWARDING\n====================\n%s====================\n",sbuf);
 #ifdef DEBUG
+  printf ("FORWARDING\n====================\n%s====================\n",sbuf);
   printf ("forwarded request\n");
 #endif
 

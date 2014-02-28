@@ -1,5 +1,6 @@
 #include <wrap.h>
 #include <http.h>
+#include <pthread.h>
 
 char ** filters;
 unsigned int filters_cnt = 0;
@@ -72,12 +73,22 @@ int main (int argc, char * argv[])
 
   for ( ; ; ) {
     cs = Accept(s,&cli,&clilen);
+
+#ifdef PREFORK
     if ( Fork() ) {
       printf ("%s: ",inet_ntoa(cli.sin_addr));
     } else {
       process(cs,&cli);
       return 0;
     }
+#else
+    struct args_p *arg = (struct args_p*)malloc(sizeof(struct args_p));
+    arg->cs = cs;
+    arg->cli = &cli;
+    pthread_create(&arg->tid, NULL, &process_p, arg);
+    pthread_detach(arg->tid);
+#endif
+
   }
   
   /* NOTREACHED */
